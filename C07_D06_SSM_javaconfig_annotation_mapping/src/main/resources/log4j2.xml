@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--OFF 表示不记录log4j2本身的日志 -->
+<configuration status="OFF">
+    <Appenders>
+		<Console name="Console1" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="%d{yyyy/MM/dd E HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="error">
+			<AppenderRef ref="Console1" />
+		</Root>
+		<Logger name="com.qdu.mapper" level="debug" additivity="false">
+			<AppenderRef ref="Console1" />
+		</Logger>
+	</Loggers>
+</configuration>

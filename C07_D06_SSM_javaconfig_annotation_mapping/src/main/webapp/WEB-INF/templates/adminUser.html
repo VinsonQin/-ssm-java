@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>管理端 - 用户管理</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="//unpkg.com/layui@2.9.20/dist/css/layui.css" rel="stylesheet">
+    <script src="//unpkg.com/layui@2.9.20/dist/layui.js"></script>
+    <style>
+        .class-demo-layer-lockscreen{background: url(http://localhost:8081/bbs/static/img/post11.png) #16b777; color: rgba(255,255,255,1);}
+        .class-demo-layer-lockscreen .layui-form{position: absolute; top: 50%; left: 50%; width: 300px; transform: translate(-50%, -50%);}
+        .class-demo-layer-lockscreen .layui-form > div{margin-bottom: 8px;}
+        .class-demo-layer-pin{width: 100%; height: 38px; padding: 0 8px; background-color: rgba(255,255,255,.8); border: none; border-radius: 3px; box-sizing: border-box;}
+        .class-demo-layer-lockscreen .layui-input-suffix{pointer-events: auto; background-color: rgba(0,0,0,.5); border-radius: 0 3px 3px 0;}
+        .class-demo-layer-lockscreen .layui-input-suffix .layui-icon-right{cursor: pointer; color: #fff;}
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif;font-size: 18px">
+<div class="container mt-5">
+    <h1>用户管理</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>昵称</th>
+            <th>邮箱</th>
+            <th>个性签名</th>
+            <th>性别</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.uid}"></td>
+            <td th:text="${user.uname}"></td>
+            <td th:text="${user.uemail}"></td>
+            <td th:text="${user.uinfo}"></td>
+            <td th:if="${user.ugender} eq '0'"><img style="width:25px;height:25px" src="http://localhost:8081/bbs/static/img/xingbienan.png"></td>
+            <td th:if="${user.ugender} eq '1'"><img style="width:25px;height:25px" src="http://localhost:8081/bbs/static/img/xingbienv.png"></td>
+            <td>
+                <button class="btn btn-danger btn-sm delete-user" th:data-id="${user.uid}">删除</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="button" id="lockButton" class="layui-btn layui-btn-primary" lay-on="test-more-lockscreen">
+        页面锁屏 <span class="layui-badge-dot"></span>
+    </button>
+</div>
+
+<script>
+    window.onload = function() {
+        document.getElementById("lockButton").click();
+    };
+    layui.use(function() {
+        var layer = layui.layer;
+        var util = layui.util;
+        var form = layui.form;
+        var $ = layui.$;
+        // 事件
+        util.on('lay-on', {
+            'test-more-lockscreen': function () {
+                layer.open({
+                    type: 1,
+                    title: false, // 禁用标题栏
+                    closeBtn: false, // 禁用默认关闭按钮
+                    area: ['100%', '100%'],
+                    scrollbar: false, // 暂时屏蔽浏览器滚动条
+                    anim: -1, // 禁用弹出动画
+                    isOutAnim: false, // 禁用关闭动画
+                    resize: false,  // 禁用右下角拉伸尺寸
+                    id: 'ID-layer-demo-inst',
+                    skin: 'class-demo-layer-lockscreen', // className
+                    content: ['<div class="layui-form">',
+                        '<div class="layui-input-wrap">',
+                        '<input type="password" class="class-demo-layer-pin" lay-affix="eye">',
+                        '<div class="layui-input-suffix">',
+                        '<i class="layui-icon layui-icon-right" id="ID-layer-demo-unlock"></i>',
+                        '</div>',
+                        '</div>',
+                        '<div>请输入管理端密码</div>',
+                        '</div>'].join(''),
+                    success: function (layero, index) {
+                        var input = layero.find('input');
+                        var PASS = '111111';
+
+                        form.render(); // 表单组件渲染
+                        input.focus();
+                        // 点击解锁按钮
+                        var elemUnlock = layero.find('#ID-layer-demo-unlock');
+                        elemUnlock.on('click', function () {
+                            if ($.trim(input[0].value) === PASS) {
+                                layer.close(index);
+                                layer.closeLast('dialog'); // 关闭最新打开的信息框
+                            } else {
+                                layer.msg('锁屏密码输入有误', {offset: '16px', anim: 'slideDown'})
+                                input.focus();
+                            }
+                        });
+                        // 回车
+                        input.on('keyup', function (e) {
+                            var elem = this;
+                            var keyCode = e.keyCode;
+                            if (keyCode === 13) {
+                                elemUnlock.trigger('click');
+                            }
+                        });
+                    }
+                })
+            },
+        })
+    });
+    document.addEventListener("click", function (e) {
+        if (e.target && e.target.classList.contains("delete-user")) {
+            const userId = e.target.getAttribute("data-id");
+            if (confirm("确定删除该用户？")) {
+                fetch(`/bbs/admin/adminUser/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `userId=${userId}`
+                })
+                    .then(response => response.text())
+                    .then(result => {
+                        if (result === "success") {
+                            alert("删除成功");
+                            e.target.closest("tr").remove();
+                        } else {
+                            alert("删除失败");
+                        }
+                    })
+                    .catch(error => alert("请求失败"));
+            }
+        }
+    });
+</script>
+</body>
+</html>

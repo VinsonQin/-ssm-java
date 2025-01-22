@@ -1,0 +1,57 @@
+<!DOCTYPE generatorConfiguration PUBLIC
+ "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+ "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+
+	<!-- 1. properties标记(0个或1个)：用于指定需要使用的外部属性文件 -->
+	<properties resource="config/jdbc.properties" />
+
+	<!-- 3. context标记(1个或多个)： 最重要的配置，配置生成一组对象的环境，可配置多个，如针对不同的数据库配置多个context，一般一个就够了 -->
+	<context id="mysqlGeneratorContext" 
+	         defaultModelType="flat" 
+	         targetRuntime="MyBatis3Simple">
+
+		<!-- 3.2 plugin标记 (0个或多个)：配置MGB生成代码需要使用的插件，配置对应的插件会生成对应的内容 -->
+		<plugin type="org.mybatis.generator.plugins.SerializablePlugin" />
+		<plugin type="org.mybatis.generator.plugins.ToStringPlugin" />
+
+		<!-- 3.3 commentGenerator标记(0个或1个)：配置生成的代码是否和如何添加注释-->
+		<commentGenerator>
+			<property name="suppressAllComments" value="true" />
+			<property name="suppressDate" value="true" />
+		</commentGenerator>
+
+		<!-- 3.4 jdbcConnection标记(1个)：用于指定数据库连接信息，该元素必选，并且只能有一个-->
+		<jdbcConnection 
+		    driverClass="${jdbc.driver}"
+			connectionURL="${jdbc.url}" 
+			userId="${jdbc.username}"
+			password="${jdbc.password}">
+			<property name="nullCatalogMeansCurrent" value="true" />
+		</jdbcConnection>
+
+		<!-- 3.6 javaModelGenerator标记(1个)：控制实体类的生成，生成的实体类个数受context标记的defaultModelType值的影响 -->
+		<javaModelGenerator 
+			targetPackage="com.qdu.entity"
+			targetProject="src/main/java">
+		</javaModelGenerator>
+
+		<!-- 3.8 javaClientGenerator标记(0个或1个)：控制Dao接口，也就是Mapper接口的生成，如果不配置该元素，就不会生成Mapper接口。 -->
+		<javaClientGenerator
+			targetPackage="com.qdu.mapper" 
+			type="ANNOTATEDMAPPER"
+			targetProject="src/main/java" >
+			<!-- enableSubPackages用于指定是否根据数据库名(qdu)和架构名(schema)生成子包 -->
+			<!-- <property name="enableSubPackages" value="true" /> -->
+		</javaClientGenerator>
+		
+		<!-- 3.9 table标记(1个或多个)：指定为哪些表生成实体类和映射文件/代码，只有配置了的表才会生成实体类和映射文件/代码 -->
+		<table tableName="comment" domainObjectName="Comment" />
+		<table tableName="post" domainObjectName="Post" />
+		<table tableName="user" domainObjectName="User" />
+			
+		<!-- 可以使用%通配符匹配所有表或符合某个模式的表，如product%，使用通配符，最号指定数据库名和架构名，否则匹配所有数据库和所有架构中合适的表 -->	
+		<!-- <table tableName="%" /> -->
+
+	</context>
+</generatorConfiguration>

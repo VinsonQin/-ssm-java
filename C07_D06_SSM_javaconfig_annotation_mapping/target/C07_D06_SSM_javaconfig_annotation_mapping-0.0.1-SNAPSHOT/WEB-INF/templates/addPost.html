@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>发布</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <base th:href="@{/}">
+    <script src="http://localhost:8081/bbs/static/js/jquery-3.4.1.min.js"></script>
+    <link href="//unpkg.com/layui@2.9.20/dist/css/layui.css" rel="stylesheet">
+    <!-- HTML Content -->
+    <script src="//unpkg.com/layui@2.9.20/dist/layui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wangeditor@latest/dist/wangEditor.min.js"></script>
+    <style>
+        #imagePreviewContainer {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 700px;
+            height: 720px;
+            overflow:auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .custom-file-button {
+            background-color: #bbbbbb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="file"]:focus + .custom-file-button {
+            outline: solid 2px #bbbbbb;
+        }
+
+
+    </style>
+</head>
+<body style="margin-left: 80px;margin-right: 60px;margin-top: 50px;font-family: Arial, sans-serif;">
+<!--    <form th:action="@{/post/addPost}" method="post" enctype="multipart/form-data">-->
+<!--        &lt;!&ndash; 隐藏字段存储用户ID &ndash;&gt;-->
+<!--        <input type="hidden" id="puid" name="puid" th:value="${session.currentUser.uid}">-->
+
+<!--        &lt;!&ndash; 帖子标题 &ndash;&gt;-->
+<!--        <label for="pname">标题：</label>-->
+<!--        <input type="text" id="pname" name="pname" required>-->
+<!--        <br><br>-->
+
+<!--        &lt;!&ndash; 帖子内容 &ndash;&gt;-->
+<!--        <label for="pinfo">内容：</label>-->
+<!--        <textarea id="pinfo" name="pinfo" rows="5" cols="50" required></textarea>-->
+<!--        <br><br>-->
+
+<!--        &lt;!&ndash; 图片上传 &ndash;&gt;-->
+<!--        <label for="images">上传图片：</label>-->
+<!--        <input type="file" id="images" name="images" accept="image/*" multiple required>-->
+<!--        <br><br>-->
+
+<!--        &lt;!&ndash; 提交按钮 &ndash;&gt;-->
+<!--        <button type="submit">发布帖子</button>-->
+<!--    </form>-->
+<div class="layui-row">
+    <div class="layui-col-xs6">
+        <form th:action="@{/post/addPost}" method="post" enctype="multipart/form-data">
+            <!-- 隐藏字段存储用户ID -->
+            <input type="hidden" id="puid" name="puid" th:value="${session.currentUser.uid}">
+
+            <!-- 帖子标题 -->
+<!--            <label for="pname"><h1>标题：</h1></label>-->
+<!--            <input type="text" id="pname" name="pname" required>-->
+<!--            <br><br>-->
+            <div class="layui-input-group" style="border: 1px solid #c9c9c9;width: 720px">
+                <div class="layui-input-prefix layui-input-split" style="width: 15%">帖子标题：</div>
+                <input type="text" class="layui-input" id="pname" name="pname" required>
+            </div>
+
+            <!-- 帖子内容 -->
+<!--            <label for="pinfo">内容：</label>-->
+            <textarea style="display: none" id="pinfo" name="pinfo" rows="5" cols="50" required></textarea>
+            <br><br>
+
+            <!-- 图片上传 -->
+            <label for="images" class="custom-file-button">
+                <img style="width: 20px" src="http://localhost:8081/bbs/static/img/upload.png">
+<!--                <i class="layui-icon-upload-drag"></i>-->
+                <span style="color: #4b4b4b;margin-left: 2px">帖子配图上传</span>
+            </label>
+            <input style="display: none" type="file" id="images" name="images" accept="image/*" multiple required onchange="previewImages()">
+            <br>
+            <div id="imagePreviewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                <span style="font-size: 50px;color: #b2b2b2;opacity: 40%">配图预览区</span>
+            </div>
+            <br><br>
+
+            <!-- 提交按钮 -->
+            <button style="position: absolute;bottom: 30px;right: -760px;height: 45px" class="layui-btn layui-btn-primary layui-btn-radius" type="submit">
+                <img style="width: 30px" src="http://localhost:8081/bbs/static/img/addPost.png">
+                发布帖子
+            </button>
+        </form>
+    </div>
+    <div class="layui-col-xs6" id="editor-container"></div>
+</div>
+</body>
+<script>
+    const E = window.wangEditor
+    const editor = new E('#editor-container')
+    // 或者 const editor = new E( document.getElementById('div1') )
+    const $pinfo = $('#pinfo')
+    editor.config.onchange = function (html) {
+        // 第二步，监控变化，同步更新到 textarea
+        $pinfo.val(html)
+    }
+    // 设置编辑区域高度为 500px
+    editor.config.height = 700
+    editor.create()
+    // 第一步，初始化 textarea 的值
+    $pinfo.val(editor.txt.html())
+
+    function previewImages() {
+        const fileInput = document.getElementById('images');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+
+        // 清空当前的预览内容
+        previewContainer.innerHTML = '';
+
+        // 检查是否有文件被选择
+        if (fileInput.files) {
+            Array.from(fileInput.files).forEach(file => {
+                // 检查文件类型（仅允许图片）
+                if (!file.type.startsWith('image/')) {
+                    alert('请选择图片文件！');
+                    return;
+                }
+
+                // 创建 FileReader 读取文件
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    // 创建 img 元素并设置 src 为图片的 Base64
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '300px';
+                    img.style.maxHeight = '300px';
+                    img.style.border = '1px solid #ddd';
+                    img.style.borderRadius = '5px';
+                    img.style.objectFit = 'cover';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+</script>
+</html>

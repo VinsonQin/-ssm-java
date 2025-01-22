@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base th:href="@{/}">
+    <title>用户主页</title>
+    <script src="http://localhost:8081/bbs/static/js/jquery-3.4.1.min.js"></script>
+    <link href="//unpkg.com/layui@2.9.20/dist/css/layui.css" rel="stylesheet">
+    <script src="//unpkg.com/layui@2.9.20/dist/layui.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .profile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            height: 300px;
+        }
+
+        .profile img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            text-align: left;
+        }
+
+        hr {
+            margin: 20px auto;
+            width: 80%;
+            border: 0;
+            height: 1px;
+            background-color: #ccc;
+        }
+
+        .posts {
+            width: 80%;
+            margin: 0 auto;
+            text-align: right;
+        }
+
+        .post {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            background-color: rgb(246, 246, 246);
+            border-radius: 25px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .post img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+        }
+
+        .post-title {
+            flex: 1;
+            font-size: 20px;
+        }
+
+        .layui-layer {
+            border-radius: 25px;
+        }
+
+        .delete-btn {
+            margin-top: -10px;
+            margin-bottom: -10px;
+            transform: translateX(40px);
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(90deg, rgba(246,246,246,1) 35%, rgba(255,60,60,1) 100%);
+            border-bottom-right-radius: 25%;
+            border-top-right-radius: 25%;
+            padding-left: 30px;
+            border: 0;
+            outline: none;
+            display: none;
+        }
+
+        .post:hover .delete-btn {
+            display: inline-block;
+        }
+        .delete-btn:hover {
+            display: inline-block;
+        }
+
+        /* 遮蔽层样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            background: #fff;
+            width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            padding: 20px;
+        }
+
+        /* 关闭按钮样式 */
+        .close-btn {
+            position: absolute;
+            top: 0px;
+            right: 10px;
+            font-size: 30px;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        /* 遮蔽层显示时 */
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .overlay{
+            background: radial-gradient(circle, rgba(0,0,0,0.6) 37%, rgba(246,246,246,0) 100%);
+            outline: none;
+            display: none;
+            z-index: 9999;
+            width: 100%;
+            height: 300px;
+            position: absolute;
+            top: 0;
+        }
+        .profile:hover .overlay{
+            display: flex;align-items: center;justify-content: center;
+        }
+
+        #imagePreviewContainer {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 90px;
+            height: 90px;
+            /*overflow:auto;*/
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile layui-anim layui-anim-fadein">
+        <img th:src="${session.currentUser.uimg}" alt="用户头像" class="avatar">
+        <div class="profile-info">
+            <h2 th:text="${session.currentUser.uname}"></h2>
+            <p th:if="${session.currentUser.ugender} eq '0'"><img style="width:25px;height:25px" src="http://localhost:8081/bbs/static/img/xingbienan.png"></p>
+            <p th:if="${session.currentUser.ugender} eq '1'"><img style="width:25px;height:25px" src="http://localhost:8081/bbs/static/img/xingbienv.png"></p>
+            <p th:text="'邮箱：'+${session.currentUser.uemail}"></p>
+            <p id="signature" th:text="'用户签名：'+${session.currentUser.uinfo}"></p>
+        </div>
+        <div class="overlay layui-anim layui-anim-fadein">
+            <h1 style="font-size: 48px;color: #ababab;text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">点击可修改信息</h1>
+        </div>
+    </div>
+    <hr>
+    <div th:if="${myPosts.size() == 0}">
+        <p>您还没有发布任何帖子。</p>
+    </div>
+    <div th:if="${myPosts.size() > 0}">
+        <ul class="posts">
+            <li class="post layui-anim layui-anim-fadein" th:onclick="'showPostDetail(' + ${post.pid} + ')'" th:each="post : ${myPosts}">
+                <img th:src="${post.pimg.split(';')[0]}">
+                <span class="post-title" th:text="${post.pname}"></span><br>
+                <span th:text="${post.ptime}"></span>
+                <button class="delete-btn layui-anim layui-anim-fadein" th:attr="data-pid=${post.pid}">
+                    &#10060;
+                </button>
+            </li>
+        </ul>
+    </div>
+    <!-- 遮蔽层 -->
+    <div id="modalOverlay" class="modal-overlay">
+        <!-- 模态框 -->
+        <div class="modal">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            <span style="display:flex;text-align: left;"><h3>修改头像:</h3></span>
+            <div style="border: 1px solid #c9c9c9;border-radius: 12px;margin-top: 10px;padding: 10px;margin-bottom: 10px">
+                <form id="uploadAvatarForm" action="/bbs/user/uploadAvatar" method="post" enctype="multipart/form-data">
+                    <div class="layui-row">
+                        <div class="layui-col-xs4" id="imagePreviewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            <span style="font-size: 10px;color: #b2b2b2;opacity: 40%">配图预览区</span>
+                        </div>
+                        <label style="padding-right: 50px;padding-top: 25px" for="avatar" class="custom-file-button layui-col-xs8">
+                            <img style="width: 20px" src="http://localhost:8081/bbs/static/img/upload.png">
+                            <span style="color: #4b4b4b;margin-left: 2px">点击选择头像</span>
+                        </label>
+                    </div>
+                    <input style="display: none" type="file" id="avatar" name="avatar" accept="image/*" required onchange="previewImages()"/>
+                    <button class="layui-btn layui-btn-primary layui-btn-radius" type="submit" >确认修改头像</button>
+                </form>
+            </div>
+            <span style="display:flex;text-align: left;"><h3>修改基础信息:</h3></span>
+            <div style="border: 1px solid #c9c9c9;border-radius: 12px;margin-top: 10px;padding: 10px">
+                <form id="user-form" action="/bbs/user/update" method="post">
+                    <!-- 隐藏用户ID，用于标识修改的是哪个用户 -->
+                    <input type="hidden" name="uid" th:value="${session.currentUser.uid}">
+
+                    <label for="uname">用户名：</label>
+                    <input type="text" id="uname" name="uname" th:value="${session.currentUser.uname}" required><br>
+
+                    <label>性别：</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" id="ugender1" name="ugender" value="0" title="男">男&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <!--                <label for="ugender1">男</label>-->
+                    <input type="radio" id="ugender2" name="ugender" value="1" title="女">女&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <!--                <label for="ugender2">女</label><br>-->
+                    <br>
+
+                    <label for="uinfo">个性签名：</label>
+                    <input type="text" id="uinfo" name="uinfo" th:value="${session.currentUser.uinfo}" required><br>
+
+                    <label for="uemail">绑定邮箱：</label>
+                    <input type="email" id="uemail" name="uemail" th:value="${session.currentUser.uemail}"><br>
+                    <label for="upwd">密码：</label>
+                    <input type="text" id="upwd" name="upwd" th:value="${session.currentUser.upwd}"><br>
+
+                    <!-- 使用 button 直接提交表单 -->
+                    <button class="layui-btn layui-btn-primary layui-btn-radius" type="submit">提交修改</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPostDetail(postId) {
+            if ($(event.target).hasClass('delete-btn')) {
+                return;
+            }
+            layui.use('layer', function () {
+                const layer = layui.layer;
+                layer.open({
+                    type: 2, // iframe 弹出层
+                    title: false, // 弹出层标题
+                    area: ['840px', '720px'], // 弹出层宽高
+                    content: `/bbs/postDetail/${postId}`, // 帖子详情页的 URL
+                    shadeClose: true // 点击遮罩层关闭弹出层
+                });
+            });
+        }
+
+        // 删除按钮点击事件
+        $(document).on('click', '.delete-btn', function (event) {
+            const pid = $(this).data('pid'); // 获取帖子 ID
+            if (confirm("确定要删除这个帖子吗？")) {
+                $.post('/bbs/post/delete', { pid: pid }, function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload(); // 刷新页面
+                    } else {
+                        alert(response.message);
+                    }
+                });
+            }
+        });
+
+        // 获取所有可以触发模态框的 div
+        const triggerDivs = document.querySelectorAll('.profile');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // 给每个触发 div 添加点击事件
+        triggerDivs.forEach(div => {
+            div.addEventListener('click', () => {
+                modalOverlay.classList.add('active');
+            });
+        });
+
+        // 点击关闭按钮关闭模态框
+        closeModalBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+
+        // 点击遮蔽层关闭模态框
+        modalOverlay.addEventListener('click', (event) => {
+            if (event.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+        });
+
+        function previewImages() {
+            const fileInput = document.getElementById('avatar');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+
+            // 清空当前的预览内容
+            previewContainer.innerHTML = '';
+
+            // 检查是否有文件被选择
+            if (fileInput.files) {
+                Array.from(fileInput.files).forEach(file => {
+                    // 检查文件类型（仅允许图片）
+                    if (!file.type.startsWith('image/')) {
+                        alert('请选择图片文件！');
+                        return;
+                    }
+
+                    // 创建 FileReader 读取文件
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        // 创建 img 元素并设置 src 为图片的 Base64
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '70px';
+                        img.style.maxHeight = '70px';
+                        img.style.border = '1px solid #ddd';
+                        img.style.borderRadius = '5px';
+                        img.style.objectFit = 'cover';
+                        previewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+    </script>
+
+</body>
+</html>

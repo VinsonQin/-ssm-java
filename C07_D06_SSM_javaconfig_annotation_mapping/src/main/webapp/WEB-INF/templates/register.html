@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>注册</title>
+    <base th:href="@{/}">
+    <link href="http://localhost:8081/bbs/static/img/bbs.ico" rel="shortcut icon">
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            /*background: linear-gradient(to bottom right, #2196f3, #64b5f6);*/
+            background-image: url("http://localhost:8081/bbs/static/img/post11.png");
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            color: #fff;
+        }
+        .container {
+            width: 350px;
+            perspective: 1000px; /* 开启 3D 透视效果 */
+        }
+        .flip-card {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            transform-style: preserve-3d; /* 保持子元素的 3D 效果 */
+            transition: transform 0.8s ease-in-out;
+        }
+        .flip-card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* 隐藏背面内容 */
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg); /* 背面旋转 180 度 */
+            flex-direction: column;
+            padding: 20px;
+        }
+        .flip-card.flipped {
+            transform: rotateY(180deg); /* 整体翻转 */
+        }
+        .register-btn {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196f3;
+            cursor: pointer;
+        }
+        .form label {
+            /*display: block;*/
+            /*margin: 10px 0 5px;*/
+        }
+        .form input[type="text"],
+        .form input[type="password"],
+        .form input[type="email"] {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form button {
+            width: 95%;
+            padding: 10px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .form button:hover {
+            background: #1976d2;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #2196f3;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="flip-card" id="flipCard">
+        <!-- 正面：显示“注册”按钮 -->
+        <div class="flip-card-inner" onclick="toggleFlip()">
+<!--            <div class="register-btn" onclick="toggleFlip()">注册</div>-->
+            <h1>注册</h1>
+        </div>
+
+        <!-- 背面：显示注册表单 -->
+        <div class="flip-card-inner flip-card-back">
+            <h1>注册</h1>
+            <form class="form" th:action="@{/user/register}" method="post">
+                <label for="uname">用户名：</label>
+                <input type="text" id="uname" name="uname" required><br>
+
+                <label for="upwd">密码：</label>
+                <input type="password" id="upwd" name="upwd" required><br>
+
+                <label for="uemail">邮箱：</label>
+                <input type="email" id="uemail" name="uemail" required><br>
+
+                <label>性别：</label>
+                <input type="radio" id="ugender1" name="ugender" value="0">
+                <label for="ugender1">男</label>
+                <input type="radio" id="ugender2" name="ugender" value="1">
+                <label for="ugender2">女</label>
+                <br><br><br>
+
+                <button type="submit">注册</button>
+            </form>
+            <a th:href="@{/user/login}">已有账号？去登录</a>
+            <div style="position: relative;left: 160px;bottom: -20px;border-radius: 50%;width: 30px;height: 30px;background: linear-gradient(to bottom right, #2196f3, #64b5f6); "  onclick="toggleFlip()"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 显示错误信息 -->
+<div class="error-message" th:if="${error}" th:text="${error}"></div>
+
+<script>
+    // 切换 3D 翻转动画
+    function toggleFlip() {
+        const flipCard = document.getElementById('flipCard');
+        flipCard.classList.toggle('flipped');
+    }
+</script>
+</body>
+</html>

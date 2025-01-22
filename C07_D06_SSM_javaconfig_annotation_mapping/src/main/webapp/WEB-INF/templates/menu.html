@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BBS中国</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <base th:href="@{/}">
+    <link href="http://localhost:8081/bbs/static/img/bbs.ico" rel="shortcut icon">
+    <link rel="stylesheet" href="http://localhost:8081/bbs/static/css/menuStyle.css">
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+    <div class="nav-item">
+        <div onclick="loadContent('post/user')" style="display: flex;align-items: center;" th:if="${session.currentUser != null}">
+            <img th:src="${session.currentUser.uimg}" alt="用户头像" class="avatar" style="height: 55px;width: 55px;border-radius: 50%">&nbsp&nbsp
+            <h2 th:text="${session.currentUser.uname}"></h2>
+        </div>
+        <div th:if="${session.currentUser == null}"><h2>请先<a th:href="@{/login}">登录</a></h2></div>
+    </div>
+    <div style="background-color: inherit;" class="greeting nav-item" id="greeting"></div>
+    <div class="toggle-button" id="toggleButton">❯</div>
+    <div class="nav-item" style="font-size: 16px;" onclick="loadContent('post/index')">发现</div>
+    <div class="nav-item" style="font-size: 16px;" onclick="loadContent('addPost')">发布</div>
+    <div class="nav-item" style="font-size: 16px;" onclick="loadContent('admin/adminIndex')">管理端-仪表盘</div>
+    <div class="nav-item" style="font-size: 16px;" onclick="loadContent('admin/adminPost')">管理端-帖子管理</div>
+    <div class="nav-item" style="font-size: 16px;" onclick="loadContent('admin/adminUser')">管理端-用户管理</div>
+    <div style="background-color: inherit;position: fixed;bottom: 75px" class="nav-item" th:if="${session.currentUser != null}">
+        <a th:href="@{/user/logout}">退出登录</a>
+    </div>
+    <div style="background-color: inherit;position: fixed;bottom: 10px" class="date nav-item" id="date"></div>
+</div>
+<div class="content" id="content"></div>
+<script src="http://localhost:8081/bbs/static/js/menuScript.js"></script>
+</body>
+</html>

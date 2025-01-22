@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>测试</title>
+    <base th:href="@{/}">
+    <link href="//unpkg.com/layui@2.9.20/dist/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<!-- HTML Content -->
+<script src="//unpkg.com/layui@2.9.20/dist/layui.js"></script>
+<script>
+    // // Usage
+    // layui.use(function(){
+    //     var layer = layui.layer;
+    //     // Welcome
+    //     layer.msg('Hello World', {icon: 6});
+    // });
+    // // 在此处输入 layer 的任意代码
+    layer.open({
+        type: 2,
+        area: ['500px', '300px'],
+        title: 'Hello layer',
+        shade: 0.6, // 遮罩透明度
+        shadeClose: true, // 点击遮罩区域，关闭弹层
+        maxmin: true, // 允许全屏最小化
+        anim: 0, // 0-6 的动画形式，-1 不开启
+        content: 'http://localhost:8081/bbs/post/index'
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>发现</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <base th:href="@{/}">
+    <meta charset="UTF-8"/>
+<!--    <link rel="stylesheet" href="http://localhost:8081/bbs/static/css/bootstrap.min.css">-->
+<!--    <link-->
+<!--            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"-->
+<!--            rel="stylesheet"-->
+<!--            integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"-->
+<!--            crossorigin="anonymous"-->
+<!--    />-->
+<!--    <script-->
+<!--            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"-->
+<!--            integrity="sha384-/mhDoLbDldZc3qpsJHpLogda//BVZbgYuw6kof4u2FrCedxOtgRZDTHgHUhOCVim"-->
+<!--            crossorigin="anonymous"-->
+<!--    ></script>-->
+    <link href="//unpkg.com/layui@2.9.20/dist/css/layui.css" rel="stylesheet">
+    <!-- HTML Content -->
+    <script src="//unpkg.com/layui@2.9.20/dist/layui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .post-container {
+            display: grid;
+            margin-left: 30px;
+            grid-template-columns: repeat(
+                auto-fill,
+                minmax(260px, 1fr)
+              ); /* 自动适应列宽 */
+            grid-template-rows: masonry; /* 启用 Masonry 布局 */
+            gap: 12px; /* 设置网格间距 */
+        }
+
+        .post {
+            padding: 0;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .post-thumbnail {
+            width: 95%;
+            padding: 0;
+            margin: 0;
+            border-radius: 20px;
+        }
+
+        .layui-layer {
+            border-radius: 25px;
+        }
+
+        /* 搜索框父div样式 */
+        .search-container {
+            position: fixed;
+            top: 5px;
+            left: 600px;
+            width: 500px;
+            border-radius: 25px;
+            border: 1px solid #ffffff;
+            background-color: rgb(239, 239, 239);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+            transition: transform 0.4s ease-in-out; /* 缓动效果 */
+            animation: glow 3s infinite alternate;
+        }
+
+        /* 搜索框样式 */
+        .search-container input {
+            width: 85%;
+            margin-left: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+
+        /* 占位内容 */
+        .content {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        @keyframes glow {
+            0% {
+                border-color: #ffc652;
+            }
+
+            25% {
+                border-color: #ffe3a9;
+            }
+
+            50% {
+                border-color: #fff;
+            }
+
+            75% {
+                border-color: #ffe3a9;
+            }
+
+            100% {
+                border-color: #ffc652;
+            }
+        }
+    </style>
+</head>
+<body style="margin-left: 30px;margin-right: 10px">
+<div class="content"></div>
+<!-- 搜索框 -->
+<div class="search-container" id="searchContainer">
+    <form th:action="@{/post/search}" method="get">
+        <input type="text" name="keyword" placeholder="搜索帖子" th:value="${keyword}" />
+        <button style="border: 0;background-color: rgb(239, 239, 239);" id="search" type="submit"><img style="width: 30px;height: 30px" src="http://localhost:8081/bbs/static/img/search.png"></button>
+    </form>
+</div>
+
+<div id="post-container" class="post-container">
+    <div th:each="post : ${posts}" class="post">
+        <!-- 帖子内容 -->
+        <div class="post-summary" th:onclick="'showPostDetail(' + ${post.pid} + ')'">
+            <img th:src="${post.pimg.split(';')[0]}" alt="Post Image" class="post-thumbnail">
+            <h3 th:text="${post.pname}"></h3>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // var loading = layer.load('Loading...', {
+    //     shade: [1,'#ffffff']
+    // });
+    // setTimeout(function (data) {
+    //     //最后数据加载完 让 loading层消失
+    //     layer.close(loading);
+    // }, 2000);
+    // 动态加载帖子详情页
+    function showPostDetail(postId) {
+        layui.use('layer', function () {
+            const layer = layui.layer;
+            layer.open({
+                type: 2, // iframe 弹出层
+                title: false, // 弹出层标题
+                area: ['840px', '720px'], // 弹出层宽高
+                content: `/bbs/postDetail/${postId}`, // 帖子详情页的 URL
+                shadeClose: true // 点击遮罩层关闭弹出层
+            });
+        });
+    }
+    // 获取搜索框父div
+    const searchContainer = document.getElementById('searchContainer');
+
+    let lastScrollPosition = 0; // 上一次滚动的位置
+    let isScrollingDown = false; // 是否正在向下滚动
+
+    // 监听滚动事件
+    window.addEventListener('scroll', () => {
+        const currentScrollPosition = window.scrollY; // 当前滚动位置
+
+        if (currentScrollPosition > lastScrollPosition) {
+            // 向下滚动
+            isScrollingDown = true;
+            searchContainer.style.transform = 'translateY(-110%)'; // 向上隐藏
+        } else {
+            // 向上滚动
+            isScrollingDown = false;
+            searchContainer.style.transform = 'translateY(0)'; // 向下显示
+        }
+
+        // 更新上一次滚动位置
+        lastScrollPosition = currentScrollPosition;
+    });
+</script>
+</body>
+</html>
